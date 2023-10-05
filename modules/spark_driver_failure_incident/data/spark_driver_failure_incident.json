@@ -1,0 +1,162 @@
+{
+  "name": "spark_driver_failure_incident",
+  "description": "Apache Spark driver failure refers to an incident where the driver program in an Apache Spark cluster fails to execute or crashes during runtime. This can happen due to a variety of reasons such as hardware failure, software bugs, resource constraints, or programming errors. As the driver program is responsible for coordinating the execution of tasks across the cluster, any failure in the driver can result in the entire Spark job failing. This can lead to data loss, processing delays, and impact the overall performance of the Spark cluster.",
+  "params": [
+    {
+      "name": "MAX_CPU_USAGE_ALLOWED",
+      "value": ""
+    },
+    {
+      "name": "DRIVER_PROCESS_ID",
+      "value": ""
+    },
+    {
+      "name": "MIN_FREE_MEM_REQUIRED",
+      "value": ""
+    },
+    {
+      "name": "MIN_FREE_DISK_SPACE_REQUIRED",
+      "value": ""
+    },
+    {
+      "name": "PATH_TO_SPARK_DEFAULTS_CONF",
+      "value": ""
+    },
+    {
+      "name": "NEW_DRIVER_MEMORY",
+      "value": ""
+    },
+    {
+      "name": "DRIVER_NODE_MOUNT_POINT",
+      "value": ""
+    },
+    {
+      "name": "HOST_NAME",
+      "value": ""
+    },
+    {
+      "name": "K8S_CLUSTER_NAME",
+      "value": ""
+    },
+    {
+      "name": "NAMESPACE",
+      "value": ""
+    }
+  ],
+  "cells": [
+    {
+      "name": "cell_1",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Spark driver failure incident.\nApache Spark driver failure refers to an incident where the driver program in an Apache Spark cluster fails to execute or crashes during runtime. This can happen due to a variety of reasons such as hardware failure, software bugs, resource constraints, or programming errors. As the driver program is responsible for coordinating the execution of tasks across the cluster, any failure in the driver can result in the entire Spark job failing. This can lead to data loss, processing delays, and impact the overall performance of the Spark cluster."
+    },
+    {
+      "name": "cell_2",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Step 1: Check if Apache Spark is running"
+    },
+    {
+      "name": "cell_3",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `sudo systemctl status spark | grep -q \"Active: active (running)\" || echo \"Apache Spark is not running\"`"
+    },
+    {
+      "name": "cell_4",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Step 2: Check the logs for error messages"
+    },
+    {
+      "name": "cell_5",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `sudo tail -n 100 /var/log/spark/spark-driver.log`"
+    },
+    {
+      "name": "cell_6",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Step 4: Check the resource allocation of the driver"
+    },
+    {
+      "name": "cell_7",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `sudo ps -ef | grep ${DRIVER_PROCESS_ID}`"
+    },
+    {
+      "name": "cell_8",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Step 5: Check the available resources on the cluster"
+    },
+    {
+      "name": "cell_9",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `sudo free -m`"
+    },
+    {
+      "name": "cell_10",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Step 6: Check if there are any network issues"
+    },
+    {
+      "name": "cell_11",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `sudo netstat -tuln`"
+    },
+    {
+      "name": "cell_12",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Step 3: Check the status of the Apache Spark driver"
+    },
+    {
+      "name": "cell_13",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "(host | host_name=$HOST_NAME) union (pod | k8s_cluster_name=$K8S_CLUSTER_NAME | namespace=$NAMESPACE) | `sudo jps | grep -q \"Driver\" || echo \"Apache Spark driver is not running\"`"
+    },
+    {
+      "name": "cell_14",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Step 7: Check the configuration files for any errors"
+    },
+    {
+      "name": "cell_15",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_spark_error_log()"
+    },
+    {
+      "name": "cell_16",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Insufficient resources (RAM, disk space, CPU) available for Apache Spark driver."
+    },
+    {
+      "name": "cell_17",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_check_resource_availability($MAX_CPU_USAGE_ALLOWED, $MIN_FREE_MEM_REQUIRED, $MIN_FREE_DISK_SPACE_REQUIRED, $DRIVER_NODE_MOUNT_POINT)"
+    },
+    {
+      "name": "cell_18",
+      "type": "MARKDOWN",
+      "enabled": true,
+      "content": "## Increase the resources allocated to the Apache Spark driver to prevent future failures."
+    },
+    {
+      "name": "cell_19",
+      "type": "OP_LANG",
+      "enabled": true,
+      "content": "host | host_name=$HOST_NAME | invoke_update_spark_driver_memory($PATH_TO_SPARK_DEFAULTS_CONF, $NEW_DRIVER_MEMORY)"
+    }
+  ]
+}
